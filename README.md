@@ -93,3 +93,5 @@ Det er helt OK at starte simpelt og bygge videre. Tænk over hvilke delproblemer
 6. Design og polish til sidst
 
 > Tag det ét trin ad gangen. Test efter hvert trin.
+
+POP
