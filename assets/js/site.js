@@ -161,3 +161,159 @@ const jsQuestions = [
 
 
 /* write your code here */
+
+let selectedQuestions = null;
+let currentQuestion = null;
+let activePlayer = null;
+
+// Show Start section initially
+document.getElementById('Start').classList.add('active');
+
+function getRandomQuestion(questions) {
+    return questions[Math.floor(Math.random() * questions.length)];
+}
+
+function renderQuestion(questionObject) {
+    const questionParagraph = document.querySelector('#Question p');
+    if (questionParagraph) {
+        questionParagraph.textContent = questionObject.q;
+    }
+}
+
+function renderAnswer(questionObject) {
+    const answerParagraph = document.querySelector('#Answer p');
+    if (answerParagraph) {
+        answerParagraph.textContent = questionObject ? questionObject.a : '';
+    }
+}
+
+function hideAnswer() {
+    const answerDiv = document.getElementById('Answer');
+    if (answerDiv) {
+        answerDiv.classList.remove('show');
+    }
+}
+
+function prepareQuestion() {
+    if (!selectedQuestions) {
+        return;
+    }
+
+    currentQuestion = getRandomQuestion(selectedQuestions);
+    renderQuestion(currentQuestion);
+    hideAnswer();
+}
+
+// Function to navigate to a section
+function goToSection(sectionId) {
+    // Hide all sections
+    document.querySelectorAll('section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Show the target section
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+}
+
+function showGameOver(winnerId) {
+    const gameOverText = document.querySelector('#GameOver p');
+    if (gameOverText) {
+        const winnerName = winnerId === 'Player1' ? 'Player 1' : 'Player 2';
+        gameOverText.textContent = `${winnerName} wins the game!`;
+    }
+    goToSection('GameOver');
+}
+
+function resetGame() {
+    const player1Score = document.querySelector('#Player1 p');
+    const player2Score = document.querySelector('#Player2 p');
+    if (player1Score) player1Score.textContent = '0';
+    if (player2Score) player2Score.textContent = '0';
+    selectedQuestions = null;
+    currentQuestion = null;
+    activePlayer = null;
+    goToSection('Start');
+}
+
+// Add click event listeners to Start section buttons
+const startButtons = document.querySelectorAll('#Start .buttons button');
+startButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const category = button.textContent.trim();
+        if (category === 'HTML') {
+            selectedQuestions = htmlQuestions;
+        } else if (category === 'CSS') {
+            selectedQuestions = cssQuestions;
+        } else if (category === 'JavaScript') {
+            selectedQuestions = jsQuestions;
+        } else if (category === 'Mixed') {
+            selectedQuestions = [...htmlQuestions, ...cssQuestions, ...jsQuestions];
+        }
+
+        goToSection('Game');
+    });
+});
+
+// Add click event listeners to Game section buttons
+const gameButtons = document.querySelectorAll('#Game button');
+gameButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const playerDiv = button.closest('div');
+        if (playerDiv && (playerDiv.id === 'Player1' || playerDiv.id === 'Player2')) {
+            activePlayer = playerDiv.id;
+        } else {
+            activePlayer = null;
+        }
+
+        prepareQuestion();
+        goToSection('Questions');
+    });
+});
+
+// Add click event listener to Answer button
+const answerBtn = document.querySelector('#Question button');
+if (answerBtn) {
+    answerBtn.addEventListener('click', function() {
+        renderAnswer(currentQuestion);
+        const answerDiv = document.getElementById('Answer');
+        if (answerDiv) {
+            answerDiv.classList.add('show');
+        }
+    });
+}
+
+// Add scoring for Rigtigt/Forkert buttons
+const answerButtons = document.querySelectorAll('#Answer button');
+if (answerButtons.length >= 2) {
+    const rightBtn = answerButtons[0];
+    const wrongBtn = answerButtons[1];
+
+    rightBtn.addEventListener('click', function() {
+        if (activePlayer) {
+            const scoreEl = document.querySelector(`#${activePlayer} p`);
+            if (scoreEl) {
+                const currentScore = Number(scoreEl.textContent) || 0;
+                const nextScore = currentScore + 1;
+                scoreEl.textContent = String(nextScore);
+
+                if (nextScore >= 10) {
+                    showGameOver(activePlayer);
+                    return;
+                }
+            }
+        }
+        goToSection('Game');
+    });
+
+    wrongBtn.addEventListener('click', function() {
+        goToSection('Game');
+    });
+}
+
+const replayBtn = document.querySelector('#GameOver button');
+if (replayBtn) {
+    replayBtn.addEventListener('click', resetGame);
+}
